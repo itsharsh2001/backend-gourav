@@ -16,9 +16,10 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-fs.readdirSync("./routes").map((route) =>
-  app.use("/api", require(`./routes/${route}`))
-);
+fs.readdirSync("./routes").map(async (route) => {
+  const { router } = await import(`./routes/${route}`);
+  app.use("/api", router);
+});
 
 app.listen(process.env.PORT, () =>
   console.log(`Server Running on port ${process.env.PORT}`)
