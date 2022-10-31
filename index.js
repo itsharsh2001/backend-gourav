@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
-import connectDB from "./config/db";
+import connectDB from "./config/db.js";
 import fs from "fs";
 import cors from "cors";
 
@@ -12,7 +12,6 @@ app.use(
     origin: "http://localhost:3000",
   })
 );
-app.use("/static", express.static("uploads"));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
