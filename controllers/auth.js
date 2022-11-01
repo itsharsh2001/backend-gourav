@@ -2,7 +2,6 @@ import User from "../models/user.js";
 import Otp from "../models/Otp.js";
 import { comparePassword, hashPassword } from "../utils/auth.js";
 import { createJwtToken, refreshJwtToken, verifyToken } from "../utils/jwt.js";
-import jwtdecode from "jwt-decode";
 import OtpGenerator from "otp-generator";
 import crypto from "crypto";
 
@@ -92,7 +91,6 @@ export const login = async (req, res) => {
       checkUser._id
     );
 
-    // delete checkUser["password"];
     checkUser.password = undefined;
 
     return res.status(200).json({
