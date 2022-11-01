@@ -78,8 +78,8 @@ export const login = async (req, res) => {
     if (!passwordMatch)
       return res.status(400).json({ message: "Invalid Credentials" });
 
-    if(!checkUser.isVerified)
-      return res.status(400).josn({ message: "Verify Your Email" })  
+    if (!checkUser.isVerified)
+      return res.status(400).josn({ message: "Verify Your Email" });
     const accesstoken = createJwtToken(
       email,
       checkUser.tokenVersion,
@@ -106,18 +106,14 @@ export const login = async (req, res) => {
   }
 };
 
-const isTokenExpired = (t) => Date.now() >= jwtdecode(t || "null").exp * 1000;
-
 export const logout = async (req, res) => {
   try {
     const JWT = req.headers["authorization"].replaceAll("JWT ", "");
-    if (isTokenExpired(JWT))
-      return res.status(403).json({ message: "Unauthorised" });
-    
-    verifyToken(JWT);
+    const tokenDetails = verifyToken(JWT, process.env.JWT_SECRET2);
+    if (!tokenDetails) return res.status(403).json({ message: "Unauthorised" });
 
-    await User.findByIdAndUpdate(jwtdecode(JWT).id, {
-      tokenVersion: jwtdecode(JWT).tokenVersion + 1,
+    await User.findByIdAndUpdate(tokenDetails.id, {
+      tokenVersion: tokenDetails.tokenVersion + 1,
     });
 
     return res.json({ message: "signout success" });
@@ -128,7 +124,7 @@ export const logout = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
-  if(!req.body.email || !req.body.otp)
+  if (!req.body.email || !req.body.otp)
     return res.status(400).json({ message: "Insufficient Fields" });
 
   const isOtpExist = await Otp.findOne({ email: req.body.email });
@@ -144,12 +140,11 @@ export const verifyOtp = async (req, res) => {
 };
 
 export const resendOtp = async (req, res) => {
-  if(!req.body.email)
+  if (!req.body.email)
     return res.status(400).json({ message: "Email not sent" });
-  
+
   const isOtpExist = await Otp.findOne({ email: req.body.email });
 
-  
   if (isOtpExist)
     return res
       .status(400)
