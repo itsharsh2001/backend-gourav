@@ -25,7 +25,7 @@ const isTokenExpired = (exp) => Date.now() >= exp * 1000;
 export const verifyToken = (token, secret) => {
   try {
     var decoded = jwt.verify(token, secret);
-    if (isTokenExpired(decoded)) return decoded;
+    if (!isTokenExpired(decoded.exp)) return decoded;
 
     return false;
   } catch (error) {
