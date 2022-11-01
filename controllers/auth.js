@@ -158,14 +158,14 @@ export const resendOtp = async (req, res) => {
   return res.status(201).json({ message: newOtp });
 };
 
-export const forgotPassword = () => {
-  crypto.randomBytes(32, (err, buffer) => {
+export const forgotPassword = async (req, res) => {
+  crypto.randomBytes(32, async (err, buffer) => {
     if (err) console.log(err);
 
     const resetToken = buffer.toString("hex");
-    const user = User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req.body.email });
     if (!user) return res.status(422).json({ message: "User does not exist" });
-    user.findByIdAndUpdate(user._id, {
+    await User.findByIdAndUpdate(user._id, {
       resetToken,
       expireToken: Date.now() + 3600000,
     });
@@ -190,8 +190,8 @@ export const updatePassword = async (req, res) => {
   if (!user) return res.status(422).json({ message: "Link is expired" });
   const hashedPassword = await hashPassword(password);
   await User.findByIdAndUpdate(user._id, {
-    resetToken: undefined,
-    expireToken: undefined,
+    resetToken: "",
+    expireToken: "",
     password: hashedPassword,
   });
 
