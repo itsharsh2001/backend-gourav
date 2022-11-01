@@ -1,6 +1,7 @@
 import User from "../models/user.js";
 import { comparePassword, hashPassword } from "../utils/auth.js";
-import { createJwtToken } from "../utils/jwt.js";
+import { createJwtToken, refreshJwtToken } from "../utils/jwt.js";
+import jwtdecode from 'jwt-decode';
 
 var emailRegex =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
@@ -12,28 +13,28 @@ export const register = async (req, res) => {
     if (!username || !email || !password)
       return res.status(400).json({ message: "Fill all the Fields" });
 
-    if (username.length < 3) 
+    if (username.length < 3)
       return res.status(400).json({ message: "Invalid Name" });
-    
 
-    if (!emailRegex.test(email)) 
+
+    if (!emailRegex.test(email))
       return res.status(400).json({ message: "Invalid E-Mail Address" });
-    
 
-    if (password.length < 6) 
+
+    if (password.length < 6)
       return res
         .status(400)
         .json({ message: "Password must have atleast 6 characters" });
-    
-    if (password != confirmPassword) 
+
+    if (password != confirmPassword)
       return res.status(400).json({ message: "Password Doesn't match" });
-    
+
 
     let checkUser = await User.findOne({ email: email });
 
-    if (checkUser) 
+    if (checkUser)
       return res.status(400).json({ message: "User already registered" });
-    
+
 
     const hashedPassword = await hashPassword(password);
 
@@ -74,25 +75,35 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid Credentials" });
     }
 
-    const token = createJwtToken(email);
+    const accesstoken = createJwtToken(email, checkUser.tokenversion, checkUser._id);
+    const refreshtoken = refreshJwtToken(email, checkUser.tokenversion, checkUser._id);
 
-    checkUser.password = undefined;
+    delete checkUser["password"];
 
-    res.cookie("token", token, {
-      httpOnly: true, // http - in development
-      // secure: true, // only works on https - secure - in production
+    return res.status(200).json({
+      message: checkUser,
+      refreshtoken: refreshtoken,
+      accesstoken: accesstoken
     });
-
-    return res.status(200).json({ message: checkUser });
   } catch (error) {
     console.log(error);
     return res.status(500).send("Error. Try again");
   }
 };
 
+const isTokenExpired = (t) => Date.now() >= jwtdecode(t || "null").exp * 1000;
+
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    const JWT = req.headers["authorization"].replaceAll("JWT ", "");
+    
+    if(!isTokenExpired(JWT)){
+      const userDetails = jwtdecode(JWT);
+      await User.findByIdAndUpdate(userDetails.id,{
+        tokenversion: userDetails.tokenversion+1,
+      });
+    }
+
     return res.json({ message: "signout success" });
   } catch (error) {
     console.log(error);

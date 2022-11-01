@@ -1,19 +1,33 @@
-// import { Jwt } from "jsonwebtoken"; this line doesnt work for jsonwebtoken since it is a commonJS module
-// import pkg from 'jsonwebtoken';
-// const { Jwt } =pkg
-
 import jwt from 'jsonwebtoken'
 
-export const createJwtToken = ( email ) => {
-    const token = jwt.sign(
+export const createJwtToken = ( email, tokenversion, id ) => {
+    const accesstoken = jwt.sign(
         {
-            email: email
+            email: email,
+            tokenversion: tokenversion,
+            id: id,
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: "1d",
+            expiresIn: "0.5h",
         }
     );
 
-    return token;
+    return accesstoken;
+}
+
+export const refreshJwtToken = ( email, tokenversion, id ) => {
+    const refreshtoken = jwt.sign(
+        {
+            email: email,
+            tokenversion: tokenversion,
+            id: id,
+        },
+        process.env.JWT_SECRET2,
+        {
+            expiresIn: "7d",
+        }
+    );
+
+    return refreshtoken;
 }
