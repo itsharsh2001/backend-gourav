@@ -4,6 +4,7 @@ import { comparePassword, hashPassword } from "../utils/auth.js";
 import { createJwtToken, refreshJwtToken } from "../utils/jwt.js";
 import jwtdecode from "jwt-decode";
 import OtpGenerator from "otp-generator";
+import crypto from "crypto";
 
 var emailRegex =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
@@ -149,4 +150,44 @@ export const resendOtp = async (req, res) => {
 
   let newOtp = await Otp.create({ email: req.body.email, otp });
   return res.status(201).json({ message: newOtp });
+};
+
+export const forgotPassword = () => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) console.log(err);
+
+    const resetToken = buffer.toString("hex");
+    const user = User.findOne({ email: req.body.email });
+    if (!user) return res.status(422).json({ message: "User does not exist" });
+    user.findByIdAndUpdate(user._id, {
+      resetToken,
+      expireToken: Date.now() + 3600000,
+    });
+
+    return res.status(200).json({ message: "Check Your Mail" });
+  });
+};
+
+export const updatePassword = async (req, res) => {
+  const { password, token } = req.body;
+
+  if (password.length <= 6)
+    return res
+      .status(400)
+      .json({ message: "Password Length should be more than 6 characters" });
+
+  const user = await User.findOne({
+    resetToken: token,
+    expireToken: { $gt: Date.now() },
+  });
+
+  if (!user) return res.status(422).json({ message: "Link is expired" });
+  const hashedPassword = await hashPassword(password);
+  await User.findByIdAndUpdate(user._id, {
+    resetToken: undefined,
+    expireToken: undefined,
+    password: hashedPassword,
+  });
+
+  return res.status(200).json({ message: "Password Updated successfully" });
 };
