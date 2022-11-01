@@ -1,7 +1,7 @@
 import User from "../models/user.js";
 import Otp from "../models/Otp.js";
 import { comparePassword, hashPassword } from "../utils/auth.js";
-import { createJwtToken, refreshJwtToken } from "../utils/jwt.js";
+import { createJwtToken, refreshJwtToken, verifyToken } from "../utils/jwt.js";
 import jwtdecode from "jwt-decode";
 import OtpGenerator from "otp-generator";
 import crypto from "crypto";
@@ -113,6 +113,8 @@ export const logout = async (req, res) => {
     const JWT = req.headers["authorization"].replaceAll("JWT ", "");
     if (isTokenExpired(JWT))
       return res.status(403).json({ message: "Unauthorised" });
+    
+    verifyToken(JWT);
 
     await User.findByIdAndUpdate(jwtdecode(JWT).id, {
       tokenVersion: jwtdecode(JWT).tokenVersion + 1,
@@ -120,6 +122,7 @@ export const logout = async (req, res) => {
 
     return res.json({ message: "signout success" });
   } catch (error) {
+    console.log(error);
     return res.status(500).send("Error. Try again");
   }
 };

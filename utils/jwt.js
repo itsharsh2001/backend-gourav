@@ -31,3 +31,23 @@ export const refreshJwtToken = ( email, tokenVersion, id ) => {
 
     return refreshtoken;
 }
+
+export const verifyToken = (token) => {
+    // var decoded = jwt.verify(token, process.env.JWT_SECRET2);
+    // console.log(decoded);
+    try {
+        jwt.verify(token, process.env.JWT_SECRET2, function(err, decoded) {
+            // console.log(decoded.foo) // bar
+            if(err)
+                return false;
+            return true;
+        });
+    } catch (error) {
+        
+    }
+
+
+    
+
+    
+}
