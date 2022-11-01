@@ -13,7 +13,6 @@ import path from "path";
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (file.mimetype.includes("image")) cb(null, "uploads/products/images");
-    if (file.mimetype.includes("video")) cb(null, "uploads/products/videos");
   },
 
   filename: (req, file, cb) => {
@@ -23,7 +22,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).fields([
   { name: "image", maxCount: 1 },
-  { name: "video", maxCount: 1 },
 ]);
 
 router.get("/product", getProducts);

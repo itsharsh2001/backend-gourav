@@ -37,7 +37,6 @@ export const addProduct = async (req, res) => {
     const newProduct = await Product.create({
       ...req.body,
       image: req.files.image.fileName,
-      video: req.files.video.fileName,
     });
 
     return res.status(201).json({ message: newProduct });
