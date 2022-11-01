@@ -125,7 +125,7 @@ export const verifyOtp = async (req, res) => {
 
   if (!isOtpExist) return res.status(400).json({ message: "otp Expired" });
   if (isOtpExist.otp !== req.body.otp)
-    return res.status(500).json({ message: "Wrong Otp" });
+    return res.status(400).json({ message: "Wrong Otp" });
 
   await User.findAndUpdate({ email: isOtpExist.email }, { isVerified: true });
   await Opt.findByIdAndDelete(isOtpExist._id);
@@ -133,4 +133,20 @@ export const verifyOtp = async (req, res) => {
   res.status(200).json({ message: "done" });
 };
 
-export const resendOtp = async (req, res) => {};
+export const resendOtp = async (req, res) => {
+  const isOtpExist = await Otp.findOne({ email: req.body.email });
+
+  if (isOtpExist)
+    return res
+      .status(400)
+      .json({ message: "Otp has been sent to the mail", isOtpExist });
+
+  let otp = OtpGenerator.generate(6, {
+    alphabets: false,
+    specialChars: false,
+    upperCase: false,
+  });
+
+  let newOtp = await Otp.create({ email, otp });
+  return res.status(201).json({ message: newOtp });
+};
