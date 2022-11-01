@@ -79,13 +79,13 @@ export const login = async (req, res) => {
 
     const accesstoken = createJwtToken(
       email,
-      checkUser.tokenversion,
+      checkUser.tokenVersion,
       checkUser._id
     );
 
     const refreshtoken = refreshJwtToken(
       email,
-      checkUser.tokenversion,
+      checkUser.tokenVersion,
       checkUser._id
     );
 
@@ -112,7 +112,7 @@ export const logout = async (req, res) => {
       return res.status(403).json({ message: "Unauthorised" });
 
     await User.findByIdAndUpdate(jwtdecode(JWT).id, {
-      tokenversion: jwtdecode(JWT).tokenversion + 1,
+      tokenVersion: jwtdecode(JWT).tokenVersion + 1,
     });
 
     return res.json({ message: "signout success" });
