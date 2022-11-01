@@ -12,34 +12,29 @@ export const register = async (req, res) => {
     if (!username || !email || !password)
       return res.status(400).json({ message: "Fill all the Fields" });
 
-    //Validate username
-    if (username.length < 3) {
+    if (username.length < 3) 
       return res.status(400).json({ message: "Invalid Name" });
-    }
+    
 
-    //Validate email
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email)) 
       return res.status(400).json({ message: "Invalid E-Mail Address" });
-    }
+    
 
-    // validate password
-    if (password.length < 6) {
+    if (password.length < 6) 
       return res
         .status(400)
         .json({ message: "Password must have atleast 6 characters" });
-    }
-    if (password != confirmPassword) {
+    
+    if (password != confirmPassword) 
       return res.status(400).json({ message: "Password Doesn't match" });
-    }
+    
 
-    // check user exist or not
     let checkUser = await User.findOne({ email: email });
 
-    if (checkUser) {
+    if (checkUser) 
       return res.status(400).json({ message: "User already registered" });
-    }
+    
 
-    //hashing password
     const hashedPassword = await hashPassword(password);
 
     const user = await User.create({
@@ -51,7 +46,7 @@ export const register = async (req, res) => {
     return res.status(201).json({ message: user });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ message: "Try again" });
+    return res.status(500).json({ message: "Try again" });
   }
 };
 
@@ -59,43 +54,39 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // validate fields
     if (!email || !password) {
       return res.status(400).json({ message: "Fill all the Fields" });
     }
 
-    // validate email
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Enter Valid Email" });
     }
 
-    // email exist or not
     let checkUser = await User.findOne({ email: email });
 
     if (!checkUser) {
       return res.status(500).json({ message: "User Not Registered" });
     }
 
-    //matching password
     const passwordMatch = await comparePassword(password, checkUser.password);
 
     if (!passwordMatch) {
       return res.status(400).json({ message: "Invalid Credentials" });
     }
 
-    //creating token
     const token = createJwtToken(email);
 
-    // Now Return User and Token to the client.
     checkUser.password = undefined;
 
     res.cookie("token", token, {
       httpOnly: true, // http - in development
       // secure: true, // only works on https - secure - in production
     });
+
+    return res.status(200).json({ message: checkUser });
   } catch (error) {
     console.log(error);
-    return res.status(400).send("Error. Try again");
+    return res.status(500).send("Error. Try again");
   }
 };
 
