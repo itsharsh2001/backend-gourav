@@ -77,6 +77,8 @@ export const login = async (req, res) => {
     if (!passwordMatch)
       return res.status(400).json({ message: "Invalid Credentials" });
 
+    if(!checkUser.isVerified)
+      return res.status(400).josn({ message: "Verify Your Email" })  
     const accesstoken = createJwtToken(
       email,
       checkUser.tokenVersion,
@@ -122,6 +124,9 @@ export const logout = async (req, res) => {
 };
 
 export const verifyOtp = async (req, res) => {
+  if(!req.body.email || !req.body.otp)
+    return res.status(400).json({ message: "Insufficient Fields" });
+
   const isOtpExist = await Otp.findOne({ email: req.body.email });
 
   if (!isOtpExist) return res.status(400).json({ message: "otp Expired" });
@@ -129,14 +134,18 @@ export const verifyOtp = async (req, res) => {
     return res.status(400).json({ message: "Wrong Otp" });
 
   await User.findByIdAndUpdate(req.body.email, { isVerified: true });
-  await Opt.findByIdAndDelete(isOtpExist._id);
+  await Otp.findByIdAndDelete(isOtpExist._id);
 
   res.status(200).json({ message: "done" });
 };
 
 export const resendOtp = async (req, res) => {
+  if(!req.body.email)
+    return res.status(400).json({ message: "Email not sent" });
+  
   const isOtpExist = await Otp.findOne({ email: req.body.email });
 
+  
   if (isOtpExist)
     return res
       .status(400)
