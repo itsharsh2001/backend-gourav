@@ -6,6 +6,7 @@ import {
   updateProduct,
   getProducts,
 } from "../controllers/Product.js";
+
 export const router = express.Router();
 import multer from "multer";
 import path from "path";

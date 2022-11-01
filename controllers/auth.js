@@ -82,13 +82,15 @@ export const login = async (req, res) => {
     const accesstoken = createJwtToken(
       email,
       checkUser.tokenVersion,
-      checkUser._id
+      checkUser._id,
+      checkUser.role
     );
 
     const refreshtoken = refreshJwtToken(
       email,
       checkUser.tokenVersion,
-      checkUser._id
+      checkUser._id,
+      checkUser.role
     );
 
     checkUser.password = undefined;
