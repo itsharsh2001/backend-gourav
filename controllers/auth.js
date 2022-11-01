@@ -79,7 +79,8 @@ export const login = async (req, res) => {
       checkUser._id
     );
 
-    delete checkUser["password"];
+    // delete checkUser["password"];
+    checkUser.password = undefined;
 
     return res.status(200).json({
       message: checkUser,
