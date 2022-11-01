@@ -48,7 +48,7 @@ export const register = async (req, res) => {
       upperCase: false,
     });
 
-    const newOtp = await Otp.create({ email, otp });
+    const newOtp = await Otp.create({ email: user._id, otp });
 
     return res.status(201).json({ message: user, newOtp });
   } catch (error) {
@@ -127,7 +127,7 @@ export const verifyOtp = async (req, res) => {
   if (isOtpExist.otp !== req.body.otp)
     return res.status(400).json({ message: "Wrong Otp" });
 
-  await User.findAndUpdate({ email: isOtpExist.email }, { isVerified: true });
+  await User.findByIdAndUpdate(req.body.email, { isVerified: true });
   await Opt.findByIdAndDelete(isOtpExist._id);
 
   res.status(200).json({ message: "done" });
@@ -147,6 +147,6 @@ export const resendOtp = async (req, res) => {
     upperCase: false,
   });
 
-  let newOtp = await Otp.create({ email, otp });
+  let newOtp = await Otp.create({ email: req.body.email, otp });
   return res.status(201).json({ message: newOtp });
 };
